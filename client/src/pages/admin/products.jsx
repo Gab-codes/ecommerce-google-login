@@ -26,6 +26,14 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
+import { Input } from "@/components/ui/input";
+import { useSearchParams } from "react-router-dom";
+import useDebounce from "@/components/shop/useDebounce";
+import {
+  getSearchResults,
+  resetSearchResults,
+} from "@/store/shop/search-slice";
+import { X } from "lucide-react";
 
 const initialFormData = {
   images: [],
@@ -47,17 +55,20 @@ function AdminProducts() {
   const [uploadedImageUrls, setUploadedImageUrls] = useState([]);
   const [imageLoadingState, setImageLoadingState] = useState(false);
   const [currentEditedId, setCurrentEditedId] = useState(null);
-
+  const [keyword, setKeyword] = useState("");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const { searchResults, isLoading } = useSelector((state) => state.shopSearch);
   const [page, setPage] = useState(() => {
-    return localStorage.getItem("adminProductCurrentPage")
-      ? Number(localStorage.getItem("adminProductCurrentPage"))
+    return sessionStorage.getItem("adminProductCurrentPage")
+      ? Number(sessionStorage.getItem("adminProductCurrentPage"))
       : 1;
   });
-  const limit = 10;
+  const limit = 24;
   const [totalPages, setTotalPages] = useState(0);
 
   const { productList } = useSelector((state) => state.adminProducts);
   const dispatch = useDispatch();
+
   function onSubmit(event) {
     event.preventDefault();
     const imagesToSubmit =
@@ -106,8 +117,20 @@ function AdminProducts() {
   }
 
   useEffect(() => {
-    localStorage.setItem("adminProductCurrentPage", page);
+    sessionStorage.setItem("adminProductCurrentPage", page);
   }, [page]);
+
+  const debouncedKeyword = useDebounce(keyword, 500);
+
+  useEffect(() => {
+    if (debouncedKeyword && debouncedKeyword.trim().length >= 3) {
+      setSearchParams(new URLSearchParams(`?keyword=${debouncedKeyword}`));
+      dispatch(getSearchResults(debouncedKeyword));
+    } else {
+      setSearchParams(new URLSearchParams(`?keyword=${debouncedKeyword}`));
+      dispatch(resetSearchResults());
+    }
+  }, [debouncedKeyword]);
 
   function onPageChange(newPage) {
     if (newPage > 0 && newPage <= totalPages) {
@@ -139,14 +162,46 @@ function AdminProducts() {
 
   return (
     <Fragment>
-      <div className="mb-5 w-full flex justify-end">
+      <div className="mb-5 w-full flex justify-between">
+        <div className="relative w-3/5 sm:w-3/4">
+          <Input
+            value={keyword}
+            name="keyword"
+            onChange={(event) => setKeyword(event.target.value)}
+            className="w-full pr-10"
+            placeholder="Search Products..."
+          />
+          {keyword.trim().length > 0 && (
+            <button
+              type="button"
+              onClick={() => setKeyword("")}
+              className="absolute inset-y-0 right-3 flex items-center"
+            >
+              <X className="h-5 w-5 text-gray-500 hover:text-foreground" />
+            </button>
+          )}
+        </div>
         <Button onClick={() => setOpenCreateProductsDialog(true)}>
           Add New Product
         </Button>
       </div>
-
       <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
-        {productList && productList.length > 0 ? (
+        {isLoading ? (
+          <p>Searching...</p>
+        ) : searchResults && searchResults.length > 0 ? (
+          searchResults.map((productItem) => (
+            <AdminProductTile
+              setFormData={setFormData}
+              key={productItem.id}
+              setOpenCreateProductsDialog={setOpenCreateProductsDialog}
+              setCurrentEditedId={setCurrentEditedId}
+              product={productItem}
+              handleDelete={handleDelete}
+            />
+          ))
+        ) : !searchResults.length && debouncedKeyword.trim().length >= 3 ? (
+          <p>No products match your search.</p>
+        ) : productList && productList.length > 0 ? (
           productList.map((productItem) => (
             <AdminProductTile
               setFormData={setFormData}
@@ -161,7 +216,7 @@ function AdminProducts() {
           <p>No products available.</p>
         )}
       </div>
-      {productList && productList.length > 0 ? (
+      {productList && productList.length > limit ? (
         <Pagination className="flex flex-col justify-center items-center mt-6 mb-10">
           <PaginationContent>
             <PaginationItem>
@@ -194,13 +249,13 @@ function AdminProducts() {
       ) : (
         " "
       )}
-
       <Sheet
         open={openCreateProductsDialog}
         onOpenChange={() => {
           setOpenCreateProductsDialog(false);
           setCurrentEditedId(null);
           setFormData(initialFormData);
+          setImageFiles([]);
         }}
       >
         <SheetContent side="right" className="overflow-auto">

@@ -54,7 +54,6 @@ function ShoppingListing() {
   const [filters, setFilters] = useState({});
   const [sort, setSort] = useState("price-lowtohigh");
   const [searchParams, setSearchParams] = useSearchParams();
-  const [openDetailsDialog, setIsDetailsDialogOpen] = useState(false);
   const productSearchParam = searchParams.get("product");
 
   const [page, setPage] = useState(() => {
@@ -163,12 +162,6 @@ function ShoppingListing() {
     }
   }, [filters]);
 
-  useEffect(() => {
-    if (productDetails) {
-      setIsDetailsDialogOpen(true);
-    }
-  }, [productDetails]);
-
   return (
     <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] gap-6 p-4 md:p-6">
       <ProductFilter filters={filters} handleFilter={handleFilterChange} />
@@ -265,12 +258,6 @@ function ShoppingListing() {
           ""
         )}
       </div>
-
-      <ProductDetailsDialog
-        open={openDetailsDialog}
-        setOpen={setIsDetailsDialogOpen}
-        productDetails={productDetails}
-      />
     </div>
   );
 }

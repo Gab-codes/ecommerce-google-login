@@ -1,3 +1,4 @@
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardFooter } from "../ui/card";
 import { Button } from "../ui/button";
 import { categoryOptionsMap } from "@/config";
@@ -6,14 +7,16 @@ import { Swiper, SwiperSlide } from "swiper/react";
 import "swiper/swiper-bundle.css";
 import { Pagination } from "swiper/modules";
 
-export default function ShoppingProductTitle({
-  product,
-  handleGetProductDetails,
-  handleAddtoCart,
-}) {
+export default function ShoppingProductTitle({ product, handleAddtoCart }) {
+  const navigate = useNavigate();
+
+  const handleNavigateToProductDetails = (productId) => {
+    navigate(`/shop/product/${productId}`);
+  };
+
   return (
     <Card className="w-full max-w-sm mx-auto cursor-pointer">
-      <div onClick={() => handleGetProductDetails(product?._id)}>
+      <div onClick={() => handleNavigateToProductDetails(product?._id)}>
         <div className="relative">
           {product?.images?.length > 1 ? (
             <Swiper

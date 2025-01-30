@@ -17,7 +17,6 @@ export const addReview = createAsyncThunk(
       return response.data;
     } catch (error) {
       if (error.response && error.response.data) {
-        // Reject with the custom message from the backend
         return rejectWithValue(error.response.data.message);
       }
       return rejectWithValue("An unexpected error occurred.");
@@ -43,12 +42,9 @@ const reviewSlice = createSlice({
       })
       .addCase(addReview.fulfilled, (state, action) => {
         state.isLoading = false;
-        // Handle successful review submission (optional)
       })
       .addCase(addReview.rejected, (state, action) => {
         state.isLoading = false;
-        // Log the error for debugging
-        console.error("Error in addReview:", action.payload || action.error.message);
       })
       .addCase(getReviews.pending, (state) => {
         state.isLoading = true;

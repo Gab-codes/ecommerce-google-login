@@ -24,18 +24,16 @@ import { useNavigate } from "react-router-dom";
 import { addToCart, fetchCartItems } from "@/store/shop/cart-slice";
 import { toast } from "react-toastify";
 import { getFeatureImages } from "@/store/common-slice";
-import ProductDetailsDialog from "@/components/shop/product-details";
 import ShoppingProductTitle from "@/components/shop/product-title";
 import menImg from "../../assets/men.jpg";
 import womenImg from "../../assets/women.jpg";
-import womenComboImg from "../../assets/women-combo.jpg";
+// import womenComboImg from "../../assets/women-combo.jpg";
 import menComboImg from "../../assets/men-combo.png";
 
 const categoriesWithImage = [
   { id: "men", label: "Men", image: menImg },
   { id: "women", label: "Women", image: womenImg },
-  { id: "menCombo", label: "Men Combo", image: menComboImg },
-  { id: "womenCombo", label: "Women Combo", image: womenComboImg },
+  { id: "unisex", label: "Unisex", image: menComboImg },
 ];
 
 const productTypesWithIcon = [
@@ -54,8 +52,6 @@ function ShoppingHome() {
   );
   const { featureImageList } = useSelector((state) => state.commonFeature);
   const { cartItems } = useSelector((state) => state.shopCart);
-
-  const [openDetailsDialog, setOpenDetailsDialog] = useState(false);
 
   const { user } = useSelector((state) => state.auth);
 
@@ -112,10 +108,6 @@ function ShoppingHome() {
       }
     });
   }
-
-  useEffect(() => {
-    if (productDetails !== null) setOpenDetailsDialog(true);
-  }, [productDetails]);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -184,7 +176,7 @@ function ShoppingHome() {
           <h2 className="text-3xl font-bold text-center mb-8">
             Shop by category
           </h2>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-3 md:grid-cols-3 lg:grid-cols-3 gap-4">
             {categoriesWithImage.map((categoryItem) => (
               <Card
                 key={categoryItem.id}
@@ -193,7 +185,7 @@ function ShoppingHome() {
                 }
                 className="cursor-pointer hover:shadow-lg transition-shadow"
               >
-                <CardContent className="flex flex-col items-center justify-center p-6">
+                <CardContent className="flex flex-col items-center justify-center p-3">
                   <img
                     src={categoryItem.image}
                     alt={categoryItem.label}
@@ -252,12 +244,6 @@ function ShoppingHome() {
           </div>
         </div>
       </section>
-
-      <ProductDetailsDialog
-        open={openDetailsDialog}
-        setOpen={setOpenDetailsDialog}
-        productDetails={productDetails}
-      />
     </div>
   );
 }

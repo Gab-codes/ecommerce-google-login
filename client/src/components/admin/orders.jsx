@@ -110,7 +110,7 @@ function AdminOrdersView() {
   };
 
   return (
-    <Card>
+    <Card className="max-w-[92.5vw] sm:max-w-full">
       <CardHeader>
         <CardTitle>All Orders</CardTitle>
       </CardHeader>

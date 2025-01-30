@@ -23,6 +23,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import SearchProducts from "./pages/shop/search";
 import OrderConfirmationPage from "./pages/shop/order-confirmation";
 import TotalUsers from "./pages/admin/users";
+import ProductDetailsPage from "./pages/shop/product-details";
+import AdminCategories from "./pages/admin/categories";
 
 function App() {
   const { isAuthenticated, user, isLoading } = useSelector(
@@ -117,6 +119,7 @@ function App() {
           <Route path="products" element={<AdminProducts />} />
           <Route path="features" element={<AdminFeatures />} />
           <Route path="users" element={<TotalUsers />} />
+          <Route path="categories" element={<AdminCategories />} />
         </Route>
 
         {/* Shop Routes */}
@@ -133,8 +136,8 @@ function App() {
           <Route path="checkout" element={<ShopCheckout />} />
           <Route path="account" element={<ShopAccount />} />
           <Route path="search" element={<SearchProducts />} />
-          <Route path="search" element={<SearchProducts />} />
           <Route path="order-return" element={<OrderConfirmationPage />} />
+          <Route path="product/:productId" element={<ProductDetailsPage />} />
         </Route>
 
         {/* Catch-all Route */}

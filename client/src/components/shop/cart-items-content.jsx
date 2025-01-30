@@ -2,7 +2,7 @@ import { Minus, Plus, Trash } from "lucide-react";
 import { Button } from "../ui/button";
 import { useDispatch, useSelector } from "react-redux";
 import { deleteCartItem, updateCartQuantity } from "@/store/shop/cart-slice";
-import { toast } from "react-toastify"; 
+import { toast } from "react-toastify";
 
 function UserCartItemsContent({ cartItem }) {
   const { user } = useSelector((state) => state.auth);
@@ -27,7 +27,9 @@ function UserCartItemsContent({ cartItem }) {
         if (indexOfCurrentCartItem > -1) {
           const getQuantity = getCartItems[indexOfCurrentCartItem].quantity;
           if (getQuantity + 1 > getTotalStock) {
-            toast.error(`Only ${getTotalStock} quantity can be added for this item`);
+            toast.error(
+              `Only ${getTotalStock} quantity can be added for this item`
+            );
             return;
           }
         }
@@ -44,9 +46,7 @@ function UserCartItemsContent({ cartItem }) {
             : getCartItem?.quantity - 1,
       })
     ).then((data) => {
-      if (data?.payload?.success) {
-        toast.success("Cart item is updated successfully");
-      }
+      data?.payload?.success;
     });
   }
 
@@ -62,13 +62,15 @@ function UserCartItemsContent({ cartItem }) {
 
   return (
     <div className="flex items-center space-x-4">
-<img
-  src={cartItem?.images?.[0]}
-  alt={cartItem?.title}
-  className="w-20 h-20 rounded object-cover"
-/>
+      <img
+        src={cartItem?.images?.[0]}
+        alt={cartItem?.title}
+        className="w-20 h-20 rounded object-cover"
+      />
       <div className="flex-1">
-        <h3 className="text-sm sm:text-base font-bold md:font-extrabold">{cartItem?.title}</h3>
+        <h3 className="text-sm sm:text-base font-bold md:font-extrabold">
+          {cartItem?.title}
+        </h3>
         <div className="flex items-center gap-2 mt-1">
           <Button
             variant="outline"
@@ -94,12 +96,13 @@ function UserCartItemsContent({ cartItem }) {
       </div>
       <div className="flex flex-col items-end">
         <p className="font-semibold">
-        ₦
-          {new Intl.NumberFormat('en-NG', {
+          ₦
+          {new Intl.NumberFormat("en-NG", {
             minimumFractionDigits: 0,
             maximumFractionDigits: 0,
           }).format(
-            (cartItem?.salePrice > 0 ? cartItem?.salePrice : cartItem?.price) * cartItem?.quantity
+            (cartItem?.salePrice > 0 ? cartItem?.salePrice : cartItem?.price) *
+              cartItem?.quantity
           )}
         </p>
         <Trash

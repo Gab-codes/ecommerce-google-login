@@ -37,6 +37,12 @@ const AdminCategories = () => {
   const [parentCategory, setParentCategory] = useState("");
   const [selectedParent, setSelectedParent] = useState("");
   const [subCategory, setSubCategory] = useState("");
+  const [loadingActions, setLoadingActions] = useState({
+    parent: false,
+    subcategory: false,
+    deleteParent: null,
+    deleteSubcategory: null,
+  });
 
   useEffect(() => {
     dispatch(fetchCategories());
@@ -47,14 +53,15 @@ const AdminCategories = () => {
       toast.error("Parent category cannot be empty");
       return;
     }
-
+    setLoadingActions((prevState) => ({ ...prevState, parent: true }));
     try {
       await dispatch(addCategory(parentCategory)).unwrap();
       setParentCategory("");
       toast.success("Parent category added!");
-      dispatch(fetchCategories());
     } catch (error) {
-      toast.error("Error adding category.");
+      toast.error("Category already exists or an error occurred.");
+    } finally {
+      setLoadingActions((prevState) => ({ ...prevState, parent: false }));
     }
   };
 
@@ -63,7 +70,7 @@ const AdminCategories = () => {
       toast.error("Please select a parent and enter a subcategory name.");
       return;
     }
-
+    setLoadingActions((prevState) => ({ ...prevState, subcategory: true }));
     try {
       await dispatch(
         addSubcategory({
@@ -75,29 +82,47 @@ const AdminCategories = () => {
       toast.success("Subcategory added!");
       dispatch(fetchCategories());
     } catch (error) {
-      toast.error("Error adding subcategory.");
+      toast.error("Subcategory already exists or an error occurred.");
+    } finally {
+      setLoadingActions((prevState) => ({ ...prevState, subcategory: false }));
     }
   };
 
   const handleDeleteParentCategory = async (category) => {
+    setLoadingActions((prevState) => ({
+      ...prevState,
+      deleteParent: category,
+    }));
     try {
       await dispatch(deleteCategory(category)).unwrap();
       toast.success("Parent category deleted!");
-      dispatch(fetchCategories());
     } catch (error) {
       toast.error("Error deleting category.");
+    } finally {
+      setLoadingActions((prevState) => ({
+        ...prevState,
+        deleteParent: null,
+      }));
     }
   };
 
   const handleDeleteSubCategory = async (parentName, subcategoryName) => {
+    setLoadingActions((prevState) => ({
+      ...prevState,
+      deleteSubcategory: subcategoryName,
+    }));
     try {
       await dispatch(
         deleteSubcategory({ parentName, subcategoryName })
       ).unwrap();
       toast.success("Subcategory deleted!");
-      dispatch(fetchCategories());
     } catch (error) {
       toast.error("Error deleting subcategory.");
+    } finally {
+      setLoadingActions((prevState) => ({
+        ...prevState,
+        deleteSubcategory: null,
+      }));
     }
   };
 
@@ -119,9 +144,10 @@ const AdminCategories = () => {
             <Button
               onClick={handleAddParentCategory}
               className="w-full"
-              disabled={isLoading}
+              disabled={loadingActions.parent}
+              aria-label="Add Parent Category"
             >
-              {isLoading ? "Adding..." : "Add Parent Category"}
+              {loadingActions.parent ? "Adding..." : "Add Parent Category"}
             </Button>
           </CardContent>
         </Card>
@@ -135,9 +161,8 @@ const AdminCategories = () => {
                 <SelectValue placeholder="Select Parent Category" />
               </SelectTrigger>
               <SelectContent>
-                {console.log(categories)}
-                {categories.map((category, index) => (
-                  <SelectItem key={index} value={category.name}>
+                {categories.map((category) => (
+                  <SelectItem key={category.name} value={category.name}>
                     {category.name}
                   </SelectItem>
                 ))}
@@ -153,9 +178,14 @@ const AdminCategories = () => {
             <Button
               onClick={handleAddSubCategory}
               className="mt-2 w-full"
-              disabled={!selectedParent || isLoading}
+              disabled={
+                !selectedParent ||
+                !subCategory.trim() ||
+                loadingActions.subcategory
+              }
+              aria-label="Add Subcategory"
             >
-              {isLoading ? "Adding..." : "Add Subcategory"}
+              {loadingActions.subcategory ? "Adding..." : "Add Subcategory"}
             </Button>
           </CardContent>
         </Card>
@@ -165,7 +195,9 @@ const AdminCategories = () => {
       <Card className="max-w-[92.5vw] sm:max-w-full">
         <CardHeader className="font-semibold">Categories List</CardHeader>
         <CardContent>
-          {categories.length === 0 ? (
+          {categories.length === 0 && isLoading ? (
+            <p>Loading categories...</p>
+          ) : categories.length === 0 ? (
             <p className="text-gray-500">No categories added yet.</p>
           ) : (
             <div className="overflow-x-auto">
@@ -177,45 +209,60 @@ const AdminCategories = () => {
                     <TableHead className="text-center w-1/3">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
-                <TableBody>
-                  {categories.map((parent, index) => (
-                    <TableRow key={index}>
-                      <TableCell className="font-semibold">
-                        {parent.name}
-                      </TableCell>
-                      <TableCell>
-                        {parent.subcategories?.map((sub, idx) => (
-                          <div
-                            key={idx}
-                            className="flex justify-between items-center"
+                {Array.isArray(categories) && categories.length > 0 ? (
+                  <TableBody>
+                    {categories.map((parent) => (
+                      <TableRow key={parent.name}>
+                        <TableCell className="font-semibold">
+                          {parent.name}
+                        </TableCell>
+                        <TableCell>
+                          {Array.isArray(parent.subcategories) &&
+                            parent.subcategories.map((sub, idx) => (
+                              <div
+                                key={idx}
+                                className="flex justify-between items-center"
+                              >
+                                {sub}
+                                <Button
+                                  onClick={() =>
+                                    handleDeleteSubCategory(parent.name, sub)
+                                  }
+                                  variant="ghost"
+                                  className="text-red-500 text-sm sm:text-xs ml-2"
+                                  disabled={
+                                    loadingActions.deleteSubcategory === sub
+                                  }
+                                >
+                                  {loadingActions.deleteSubcategory === sub
+                                    ? "Deleting..."
+                                    : "Delete"}
+                                </Button>
+                              </div>
+                            ))}
+                        </TableCell>
+                        <TableCell className="text-center">
+                          <Button
+                            onClick={() =>
+                              handleDeleteParentCategory(parent.name)
+                            }
+                            variant="ghost"
+                            className="text-red-500"
+                            disabled={
+                              loadingActions.deleteParent === parent.name
+                            }
                           >
-                            {sub}
-                            <Button
-                              onClick={() =>
-                                handleDeleteSubCategory(parent.name, sub)
-                              }
-                              variant="ghost"
-                              className="text-red-500 text-xs ml-2"
-                            >
-                              Delete
-                            </Button>
-                          </div>
-                        ))}
-                      </TableCell>
-                      <TableCell className="text-center">
-                        <Button
-                          onClick={() =>
-                            handleDeleteParentCategory(parent.name)
-                          }
-                          variant="ghost"
-                          className="text-red-500"
-                        >
-                          Delete
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
+                            {loadingActions.deleteParent === parent.name
+                              ? "Deleting..."
+                              : "Delete"}
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                ) : (
+                  <p className="text-gray-500">No categories added yet.</p>
+                )}
               </Table>
             </div>
           )}

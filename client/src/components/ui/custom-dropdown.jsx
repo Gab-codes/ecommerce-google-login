@@ -48,7 +48,7 @@ const CustomDropdown = ({ label, items, onItemClick }) => {
     >
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className={`inline-flex items-center justify-center lg:text-sm font-medium cursor-pointer h-full relative ${
+        className={`inline-flex items-center lg:hover:text-blue-600 transition-colors justify-center lg:text-sm font-medium cursor-pointer h-full relative ${
           isOpen ? "text-blue-600 lg:text-foreground" : "text-foreground"
         }`}
       >

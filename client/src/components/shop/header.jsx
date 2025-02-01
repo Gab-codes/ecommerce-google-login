@@ -72,7 +72,7 @@ function MenuItems({ setOpenCartSheet }) {
       {/* Static menu items */}
       <button
         onClick={() => handleNavigate({ id: "home", path: "/shop/home" })}
-        className="lg:text-sm font-medium cursor-pointer pb-1 relative"
+        className="lg:text-sm lg:hover:text-blue-600 font-medium cursor-pointer pb-1 relative transition-colors"
       >
         Home
       </button>
@@ -80,7 +80,7 @@ function MenuItems({ setOpenCartSheet }) {
         onClick={() =>
           handleNavigate({ id: "products", path: "/shop/listing" })
         }
-        className="lg:text-sm font-medium cursor-pointer pb-1 relative"
+        className="lg:text-sm lg:hover:text-blue-600 font-medium cursor-pointer pb-1 relative transition-colors"
       >
         All Products
       </button>
@@ -115,7 +115,7 @@ function MenuItems({ setOpenCartSheet }) {
                     path: `/shop/listing?product=${category.name.toLowerCase()}`,
                   })
                 }
-                className="lg:text-sm font-medium cursor-pointer pb-1 relative"
+                className="lg:text-sm lg:hover:text-blue-600 font-medium cursor-pointer pb-1 relative transition-colors"
               >
                 {category.name}
               </button>
@@ -127,7 +127,7 @@ function MenuItems({ setOpenCartSheet }) {
       {/* Search (always at the end) */}
       <button
         onClick={() => handleNavigate({ id: "search", path: "/shop/search" })}
-        className="lg:text-sm font-medium cursor-pointer pb-1 relative"
+        className="lg:text-sm lg:hover:text-blue-600 font-medium cursor-pointer pb-1 relative transition-colors"
       >
         Search
       </button>

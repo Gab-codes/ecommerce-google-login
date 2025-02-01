@@ -15,7 +15,13 @@ import {
 import { Sheet, SheetContent, SheetTrigger } from "../ui/sheet";
 import { Button } from "../ui/button";
 import { useDispatch, useSelector } from "react-redux";
-import { shoppingViewHeaderMenuItems } from "@/config";
+import { logoutUser } from "@/store/auth-slice";
+import UserCartWrapper from "./cart-wrapper";
+import { useEffect, useState } from "react";
+import { fetchCartItems } from "@/store/shop/cart-slice";
+import { Label } from "../ui/label";
+import { googleLogout } from "@react-oauth/google";
+import { fetchCategories } from "@/store/admin/category-slice";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -25,33 +31,30 @@ import {
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "../ui/avatar";
-import { logoutUser, resetTokenAndCredentials } from "@/store/auth-slice";
-import UserCartWrapper from "./cart-wrapper";
-import { useEffect, useState } from "react";
-import { fetchCartItems } from "@/store/shop/cart-slice";
-import { Label } from "../ui/label";
-import { googleLogout } from "@react-oauth/google";
+import CustomDropdown from "../ui/custom-dropdown";
 
 function MenuItems({ setOpenCartSheet }) {
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
+  const { categories, loading } = useSelector((state) => state.adminCategories);
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    dispatch(fetchCategories());
+  }, [dispatch]);
 
   function handleNavigate(getCurrentMenuItem) {
     sessionStorage.removeItem("filters");
+
     const currentFilter =
       getCurrentMenuItem.id !== "home" &&
       getCurrentMenuItem.id !== "products" &&
       getCurrentMenuItem.id !== "search"
-        ? {
-            product: [getCurrentMenuItem.id],
-          }
+        ? { product: [getCurrentMenuItem.id] }
         : null;
 
-    window.scrollTo({
-      top: 0,
-      behavior: "smooth",
-    });
+    window.scrollTo({ top: 0, behavior: "smooth" });
 
     sessionStorage.setItem("filters", JSON.stringify(currentFilter));
 
@@ -60,22 +63,75 @@ function MenuItems({ setOpenCartSheet }) {
           new URLSearchParams(`?product=${getCurrentMenuItem.id}`)
         )
       : navigate(getCurrentMenuItem.path);
+
     setOpenCartSheet(false);
   }
 
   return (
-    <nav className="flex flex-col mb-3 lg:mb-0 lg:items-center gap-6 lg:flex-row">
-      {shoppingViewHeaderMenuItems.map((menuItem) => (
-        <Label
-          onClick={() => handleNavigate(menuItem)}
-          className="text-sm font-medium cursor-pointer pb-1 relative group"
-          key={menuItem.id}
-        >
-          {menuItem.label}
-          <span className="absolute bottom-0 rounded-[5px] left-0 w-full h-[3px] bg-blue-600 transform scale-x-0 transition-all duration-300 ease-in-out group-hover:scale-x-100"></span>
-        </Label>
-      ))}
-    </nav>
+    <div className="flex flex-col mb-3 lg:mb-0 lg:items-center gap-6 lg:flex-row">
+      {/* Static menu items */}
+      <button
+        onClick={() => handleNavigate({ id: "home", path: "/shop/home" })}
+        className="lg:text-sm font-medium cursor-pointer pb-1 relative"
+      >
+        Home
+      </button>
+      <button
+        onClick={() =>
+          handleNavigate({ id: "products", path: "/shop/listing" })
+        }
+        className="lg:text-sm font-medium cursor-pointer pb-1 relative"
+      >
+        All Products
+      </button>
+
+      {/* Dynamic categories */}
+      <>
+        {loading ? (
+          <span>Loading Categories...</span>
+        ) : (
+          categories.map((category) =>
+            category.subcategories?.length > 0 ? (
+              <CustomDropdown
+                key={category._id}
+                label={category.name}
+                items={category.subcategories.map((sub) => ({
+                  id: sub.toLowerCase(),
+                  label: sub,
+                }))}
+                onItemClick={(item) =>
+                  handleNavigate({
+                    id: item.id,
+                    path: `/shop/listing?product=${item.id}`,
+                  })
+                }
+              />
+            ) : (
+              <button
+                key={category._id}
+                onClick={() =>
+                  handleNavigate({
+                    id: category.name.toLowerCase(),
+                    path: `/shop/listing?product=${category.name.toLowerCase()}`,
+                  })
+                }
+                className="lg:text-sm font-medium cursor-pointer pb-1 relative"
+              >
+                {category.name}
+              </button>
+            )
+          )
+        )}
+      </>
+
+      {/* Search (always at the end) */}
+      <button
+        onClick={() => handleNavigate({ id: "search", path: "/shop/search" })}
+        className="lg:text-sm font-medium cursor-pointer pb-1 relative"
+      >
+        Search
+      </button>
+    </div>
   );
 }
 
@@ -119,7 +175,7 @@ function HeaderRightContent() {
           className="relative"
         >
           <ShoppingCart className="w-6 h-6" />
-          <span className="absolute top-[-5px] right-[2px] font-bold text-sm">
+          <span className="absolute top-[-5px] right-[2px] font-bold lg:text-sm">
             {cartItems?.items?.length || 0}
           </span>
           <span className="sr-only">User cart</span>
@@ -198,7 +254,10 @@ function ShoppingHeader() {
                 <span className="sr-only">Toggle header menu</span>
               </Button>
             </SheetTrigger>
-            <SheetContent side="left" className="w-full max-w-xs">
+            <SheetContent
+              side="left"
+              className="w-full max-w-xs overflow-y-auto"
+            >
               <MenuItems setOpenCartSheet={setOpenCartSheet} />
             </SheetContent>
           </Sheet>

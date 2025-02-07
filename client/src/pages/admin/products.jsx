@@ -34,13 +34,15 @@ import {
   resetSearchResults,
 } from "@/store/shop/search-slice";
 import { X } from "lucide-react";
+import ProductForm from "@/components/admin/product-form";
 
 const initialFormData = {
   images: [],
   title: "",
   description: "",
   category: "",
-  product: "",
+  subcategory: "",
+  colors: [],
   price: "",
   salePrice: "",
   totalStock: "",
@@ -150,15 +152,29 @@ function AdminProducts() {
     return Object.keys(formData)
       .filter(
         (key) =>
-          key !== "averageReview" && key !== "images" && key !== "salePrice"
+          key !== "averageReview" && key !== "images" && key !== "salePrice" // Optional field
       )
       .every((key) => {
-        if (typeof formData[key] === "string") {
-          return formData[key].trim() !== "";
+        const value = formData[key];
+
+        if (typeof value === "string") {
+          return value.trim() !== ""; // Ensure strings are not empty
         }
-        return true;
+        if (typeof value === "number") {
+          return !isNaN(value) && value >= 0; // Ensure valid number
+        }
+        if (Array.isArray(value)) {
+          return value.length > 0; // Ensure arrays (e.g., colors) are not empty
+        }
+        return value !== undefined && value !== null; // Catch any other falsy values
       });
   }
+  Object.keys(formData).forEach((key) => {
+    console.log(`${key}:`, formData[key]);
+  });
+
+  console.log("FormData:", formData);
+  console.log("Validation Status:", isFormValid());
 
   return (
     <Fragment>
@@ -276,12 +292,11 @@ function AdminProducts() {
           />
 
           <div className="py-6">
-            <CommonForm
+            <ProductForm
               onSubmit={onSubmit}
               formData={formData}
               setFormData={setFormData}
               buttonText={currentEditedId !== null ? "Edit" : "Add"}
-              formControls={addProductFormElements}
               isBtnDisabled={!isFormValid()}
             />
           </div>

@@ -6,6 +6,13 @@ const ProductSchema = new mongoose.Schema(
     title: String,
     description: String,
     category: String,
+    subcategory: String,
+    colors: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Color",
+      },
+    ],
     product: String,
     price: Number,
     salePrice: Number,

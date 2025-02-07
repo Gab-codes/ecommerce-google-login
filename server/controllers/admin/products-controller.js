@@ -32,10 +32,12 @@ const addProduct = async (req, res) => {
       title,
       description,
       category,
+      subcategory,
       product,
       price,
       salePrice,
       totalStock,
+      colors, // Expecting an array of color IDs
     } = req.body;
 
     const newlyCreatedProduct = new Product({
@@ -43,10 +45,12 @@ const addProduct = async (req, res) => {
       title,
       description,
       category,
+      subcategory,
       product,
       price,
       salePrice,
       totalStock,
+      colors,
     });
 
     await newlyCreatedProduct.save();
@@ -69,6 +73,7 @@ const fetchAllProducts = async (req, res) => {
 
     const totalProducts = await Product.countDocuments({});
     const products = await Product.find({})
+      .populate("colors", "name value")
       .skip((page - 1) * limit)
       .limit(parseInt(limit));
 

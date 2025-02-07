@@ -1,4 +1,9 @@
-import { ChartNoAxesCombined, Layers, User } from "lucide-react";
+import {
+  ChartNoAxesCombined,
+  Layers,
+  PaintbrushIcon,
+  User,
+} from "lucide-react";
 import { Fragment } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { BadgeCheck, LayoutDashboard, ShoppingBasket } from "lucide-react";
@@ -34,6 +39,12 @@ export const adminSidebarMenuItems = [
     label: "Categories",
     path: "/admin/categories",
     icon: <Layers />,
+  },
+  {
+    id: "colors",
+    label: "Colors",
+    path: "/admin/colors",
+    icon: <PaintbrushIcon />,
   },
 ];
 

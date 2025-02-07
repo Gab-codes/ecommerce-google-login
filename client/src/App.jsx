@@ -25,6 +25,7 @@ import OrderConfirmationPage from "./pages/shop/order-confirmation";
 import TotalUsers from "./pages/admin/users";
 import ProductDetailsPage from "./pages/shop/product-details";
 import AdminCategories from "./pages/admin/categories";
+import AdminColors from "./pages/admin/colors";
 
 function App() {
   const { isAuthenticated, user, isLoading } = useSelector(
@@ -120,6 +121,7 @@ function App() {
           <Route path="features" element={<AdminFeatures />} />
           <Route path="users" element={<TotalUsers />} />
           <Route path="categories" element={<AdminCategories />} />
+          <Route path="colors" element={<AdminColors />} />
         </Route>
 
         {/* Shop Routes */}

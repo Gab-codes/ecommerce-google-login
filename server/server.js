@@ -19,6 +19,7 @@ const shopReviewRouter = require("./routes/shop/review-routes");
 const adminAdashboardRouter = require("./routes/admin/dashboard-routes");
 const allUsersRouter = require("./routes/admin/users-routes");
 const adminCategoryRouter = require("./routes/admin/category-routes");
+const colorRouter = require("./routes/admin/color-routes");
 
 //create a database connection.
 mongoose
@@ -55,6 +56,7 @@ app.use("/api/admin/orders", adminOrderRoute);
 app.use("/api/admin/dashboard", adminAdashboardRouter);
 app.use("/api/admin/users", allUsersRouter);
 app.use("/api/admin/category", adminCategoryRouter);
+app.use("/api/admin/color", colorRouter);
 
 app.use("/api/shop/products", shopProductsRouter);
 app.use("/api/shop/cart", shopcartRouter);

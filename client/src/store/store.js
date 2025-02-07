@@ -13,6 +13,7 @@ import adminDashboardSlice from "./admin/dashboard-slice";
 import userSlice from "./find-user-slice";
 import allUserSlice from "./admin/users-slice";
 import categorySlice from "./admin/category-slice";
+import colorSlice from "./admin/color-slice";
 
 const store = configureStore({
   reducer: {
@@ -23,6 +24,7 @@ const store = configureStore({
     adminDashboard: adminDashboardSlice,
     allUsers: allUserSlice,
     adminCategories: categorySlice,
+    adminColors: colorSlice,
 
     shopProducts: shopProductsSlice,
     shopCart: shopCartSlice,

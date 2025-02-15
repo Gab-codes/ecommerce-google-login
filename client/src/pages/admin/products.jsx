@@ -1,6 +1,5 @@
 import ProductImageUpload from "@/components/admin/image-upload";
 import AdminProductTile from "@/components/admin/product-title";
-import CommonForm from "@/components/common/form";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -8,7 +7,6 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import { addProductFormElements } from "@/config";
 import {
   addNewProduct,
   deleteProduct,
@@ -26,15 +24,15 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
-import { Input } from "@/components/ui/input";
-import { useSearchParams } from "react-router-dom";
+import ProductForm from "@/components/admin/product-form";
 import useDebounce from "@/components/shop/useDebounce";
+import { useSearchParams } from "react-router-dom";
 import {
   getSearchResults,
   resetSearchResults,
 } from "@/store/shop/search-slice";
+import { Input } from "@/components/ui/input";
 import { X } from "lucide-react";
-import ProductForm from "@/components/admin/product-form";
 
 const initialFormData = {
   images: [],
@@ -60,22 +58,31 @@ function AdminProducts() {
   const [keyword, setKeyword] = useState("");
   const [searchParams, setSearchParams] = useSearchParams();
   const { searchResults, isLoading } = useSelector((state) => state.shopSearch);
+
   const [page, setPage] = useState(() => {
     return sessionStorage.getItem("adminProductCurrentPage")
       ? Number(sessionStorage.getItem("adminProductCurrentPage"))
       : 1;
   });
-  const limit = 24;
+  const limit = 10;
   const [totalPages, setTotalPages] = useState(0);
+  const debouncedKeyword = useDebounce(keyword, 500);
 
   const { productList } = useSelector((state) => state.adminProducts);
   const dispatch = useDispatch();
-
   function onSubmit(event) {
     event.preventDefault();
     const imagesToSubmit =
       uploadedImageUrls.length > 0 ? uploadedImageUrls : formData.images;
-    const submissionData = { ...formData, images: imagesToSubmit };
+    const submissionData = {
+      ...formData,
+      images: imagesToSubmit,
+      colors: formData.colors
+        ? formData.colors.map((color) =>
+            typeof color === "object" ? color._id : color
+          )
+        : null,
+    };
 
     if (currentEditedId !== null) {
       dispatch(
@@ -122,8 +129,6 @@ function AdminProducts() {
     sessionStorage.setItem("adminProductCurrentPage", page);
   }, [page]);
 
-  const debouncedKeyword = useDebounce(keyword, 500);
-
   useEffect(() => {
     if (debouncedKeyword && debouncedKeyword.trim().length >= 3) {
       setSearchParams(new URLSearchParams(`?keyword=${debouncedKeyword}`));
@@ -152,29 +157,15 @@ function AdminProducts() {
     return Object.keys(formData)
       .filter(
         (key) =>
-          key !== "averageReview" && key !== "images" && key !== "salePrice" // Optional field
+          key !== "averageReview" && key !== "images" && key !== "salePrice"
       )
       .every((key) => {
-        const value = formData[key];
-
-        if (typeof value === "string") {
-          return value.trim() !== ""; // Ensure strings are not empty
+        if (typeof formData[key] === "string") {
+          return formData[key].trim() !== "";
         }
-        if (typeof value === "number") {
-          return !isNaN(value) && value >= 0; // Ensure valid number
-        }
-        if (Array.isArray(value)) {
-          return value.length > 0; // Ensure arrays (e.g., colors) are not empty
-        }
-        return value !== undefined && value !== null; // Catch any other falsy values
+        return true;
       });
   }
-  Object.keys(formData).forEach((key) => {
-    console.log(`${key}:`, formData[key]);
-  });
-
-  console.log("FormData:", formData);
-  console.log("Validation Status:", isFormValid());
 
   return (
     <Fragment>

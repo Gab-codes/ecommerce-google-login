@@ -103,10 +103,11 @@ const editProduct = async (req, res) => {
       title,
       description,
       category,
-      product,
+      subcategory,
       price,
       salePrice,
       totalStock,
+      colors,
     } = req.body;
 
     let findProduct = await Product.findById(id);
@@ -119,12 +120,13 @@ const editProduct = async (req, res) => {
     findProduct.title = title || findProduct.title;
     findProduct.description = description || findProduct.description;
     findProduct.category = category || findProduct.category;
-    findProduct.product = product || findProduct.product;
+    findProduct.subcategory = subcategory || findProduct.subcategory;
     findProduct.price = price === "" ? 0 : price || findProduct.price;
     findProduct.salePrice =
       salePrice === "" ? 0 : salePrice || findProduct.salePrice;
     findProduct.totalStock = totalStock || findProduct.totalStock;
     findProduct.images = images || findProduct.images;
+    findProduct.colors = colors || findProduct.colors;
 
     await findProduct.save();
     res.status(200).json({

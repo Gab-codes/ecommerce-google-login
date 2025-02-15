@@ -8,7 +8,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { Button } from "../ui/button";
 import { Checkbox } from "../ui/checkbox";
 import { useDispatch, useSelector } from "react-redux";
@@ -23,13 +23,28 @@ const ProductForm = ({
   isBtnDisabled,
 }) => {
   const dispatch = useDispatch();
-  const { colors } = useSelector((state) => state.adminColors);
-  const { categories } = useSelector((state) => state.adminCategories);
+  const { colors = [] } = useSelector((state) => state.adminColors) || {};
+  const { categories = [] } =
+    useSelector((state) => state.adminCategories) || {};
 
   useEffect(() => {
     dispatch(fetchColors());
     dispatch(fetchCategories());
   }, [dispatch]);
+
+  // Normalize formData.colors to an array of strings if needed
+  useEffect(() => {
+    if (
+      formData.colors &&
+      formData.colors.length > 0 &&
+      typeof formData.colors[0] !== "string"
+    ) {
+      setFormData((prev) => ({
+        ...prev,
+        colors: prev.colors.map((c) => String(c._id || c)),
+      }));
+    }
+  }, [formData.colors]);
 
   const handleChange = (name, value) => {
     setFormData((prev) => ({
@@ -40,23 +55,22 @@ const ProductForm = ({
     }));
   };
 
-  const handleColorChange = (checked, colorValue) => {
-    setFormData((prev) => ({
-      ...prev,
-      colors: checked
-        ? [...prev.colors, colorValue]
-        : prev.colors.filter((c) => c !== colorValue),
-    }));
+  const handleColorChange = (checked, color) => {
+    const colorId = String(color._id);
+    setFormData((prev) => {
+      const updatedColors = checked
+        ? [...new Set([...(prev.colors || []), colorId])]
+        : (prev.colors || []).filter((id) => String(id) !== colorId);
+      return {
+        ...prev,
+        colors: updatedColors.length > 0 ? updatedColors : null, // Set to null if empty.
+      };
+    });
   };
 
   return (
     <div className="space-y-4">
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          onSubmit(formData);
-        }}
-      >
+      <form onSubmit={onSubmit}>
         <div className="my-4">
           <Label>Title</Label>
           <Input
@@ -108,34 +122,43 @@ const ProductForm = ({
               <SelectValue placeholder="Select a subcategory" />
             </SelectTrigger>
             <SelectContent>
-              {categories
-                .find((category) => category.name === formData.category)
-                ?.subcategories.map((sub) => (
-                  <SelectItem key={sub} value={sub}>
-                    {sub}
-                  </SelectItem>
-                ))}
+              {(
+                categories.find(
+                  (category) => category.name === formData.category
+                )?.subcategories || []
+              ).map((sub) => (
+                <SelectItem key={sub} value={sub}>
+                  {sub}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
 
         <div className="my-4">
           <Label>Color</Label>
-          {colors.map((color) => (
-            <div key={color._id} className="flex items-center gap-2">
-              <Checkbox
-                checked={formData.colors.includes(color._id)}
-                onCheckedChange={(checked) =>
-                  handleColorChange(checked, color._id)
-                }
-              />
-              <span>{color.name}</span>
-              <div
-                className="w-4 h-4 rounded-full border"
-                style={{ backgroundColor: color.value }}
-              />
-            </div>
-          ))}
+          {colors.length > 0 ? (
+            colors.map((color) => (
+              <div key={color._id} className="flex items-center gap-2">
+                <Checkbox
+                  checked={(formData.colors || [])
+                    .map(String)
+                    .includes(String(color._id))}
+                  onCheckedChange={(checked) =>
+                    handleColorChange(checked, color)
+                  }
+                  value={color._id}
+                />
+                <span>{color.name}</span>
+                <div
+                  className="w-4 h-4 rounded-full border"
+                  style={{ backgroundColor: color.value }}
+                />
+              </div>
+            ))
+          ) : (
+            <p>Loading colors...</p>
+          )}
         </div>
 
         <div className="my-4">

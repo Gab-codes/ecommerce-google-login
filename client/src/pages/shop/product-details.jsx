@@ -24,6 +24,7 @@ function ProductDetailsPage() {
   const { cartItems } = useSelector((state) => state.shopCart);
   const { reviews } = useSelector((state) => state.shopReview);
   const [activeImageIndex, setActiveImageIndex] = useState(0);
+  const [selectedColor, setSelectedColor] = useState(null);
   const swiperRef = useRef(null);
 
   useEffect(() => {
@@ -33,6 +34,16 @@ function ProductDetailsPage() {
     }
   }, [dispatch, productId]);
 
+  useEffect(() => {
+    if (productDetails?.colors?.length > 0) {
+      setSelectedColor(
+        typeof productDetails.colors[0] === "object"
+          ? productDetails.colors[0].value
+          : productDetails.colors[0]
+      );
+    }
+  }, [productDetails]);
+
   function handleRatingChange(getRating) {
     setRating(getRating);
   }
@@ -40,6 +51,10 @@ function ProductDetailsPage() {
   function handleAddToCart(getCurrentProductId, getTotalStock) {
     let getCartItems = cartItems.items || [];
 
+    if (!selectedColor) {
+      toast.error("Please select a color first!");
+      return;
+    }
     if (getCartItems.length) {
       const indexOfCurrentItem = getCartItems.findIndex(
         (item) => item.productId === getCurrentProductId
@@ -209,7 +224,6 @@ function ProductDetailsPage() {
         {/* Product Details */}
         <div className="lg:w-1/2">
           <h1 className="text-3xl font-extrabold">{productDetails?.title}</h1>
-
           <div className="flex items-center justify-between mt-4">
             <p
               className={`text-xl font-bold text-primary ${
@@ -230,7 +244,6 @@ function ProductDetailsPage() {
               </p>
             )}
           </div>
-
           {/* Rating */}
           <div className="flex items-center gap-2 mt-3">
             <StarRatingComponent
@@ -241,6 +254,53 @@ function ProductDetailsPage() {
               ({averageReview.toFixed(1)})
             </span>
           </div>
+
+          {/* Display colors  */}
+          {productDetails?.colors && productDetails.colors.length > 0 && (
+            <div className="mt-6 space-y-3">
+              {(() => {
+                const categoryLower =
+                  productDetails?.category?.toLowerCase() || "";
+                const labelText =
+                  categoryLower.includes("perfume") ||
+                  categoryLower.includes("fragrance")
+                    ? "Available Flavors:"
+                    : "Available Colors:";
+                return (
+                  <Label className="text-sm font-medium text-gray-700 md:text-base">
+                    {labelText}
+                  </Label>
+                );
+              })()}
+              <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-5">
+                {productDetails.colors.map((color, index) => {
+                  const colorValue =
+                    typeof color === "object" ? color.value : color;
+                  const isSelected = selectedColor === colorValue;
+
+                  return (
+                    <button
+                      key={color._id || index}
+                      onClick={() => setSelectedColor(colorValue)}
+                      type="button"
+                      aria-label={`Select ${color.name} color`}
+                      className={`flex flex-col sm:flex-row items-center gap-1 sm:gap-2 rounded-lg p-2 transition-all hover:bg-gray-50 focus:outline-none ${
+                        isSelected ? "ring-2 ring-blue-500" : ""
+                      }`}
+                    >
+                      <div
+                        className="h-6 w-6 rounded-full border-2 border-gray-300 shadow-sm transition-transform hover:scale-110"
+                        style={{ backgroundColor: colorValue }}
+                      />
+                      <span className="text-xs text-gray-600 sm:text-sm">
+                        {color.name}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
 
           {/* Add to Cart */}
           <div className="mt-5 mb-5">

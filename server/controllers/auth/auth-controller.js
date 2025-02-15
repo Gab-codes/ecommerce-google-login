@@ -231,38 +231,11 @@ const loginWithGoogle = async (req, res) => {
 };
 
 // logout
-const logoutUser = async (req, res) => {
-  try {
-    const token = req.cookies.token;
-    if (!token) {
-      return res
-        .status(200)
-        .json({ success: true, message: "Already logged out" });
-    }
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    if (!decoded?.email) {
-      return res
-        .status(200)
-        .json({ success: true, message: "Already logged out" });
-    }
-
-    const user = await User.findOne({ email: decoded.email });
-    if (!user?.googleId) {
-      return res
-        .status(200)
-        .json({ success: true, message: "Already logged out" });
-    }
-
-    res
-      .clearCookie("token")
-      .json({ success: true, message: "Successfully signed out" });
-  } catch (error) {
-    console.error("Server-side Google Sign-Out Error:", error);
-    res.status(500).json({
-      success: false,
-      message: "An error occurred during sign-out.",
-    });
-  }
+const logoutUser = (req, res) => {
+  res.clearCookie("token").json({
+    success: true,
+    message: "Logged out successfully",
+  });
 };
 
 // auth middleware

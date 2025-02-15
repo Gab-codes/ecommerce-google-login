@@ -2,7 +2,13 @@ const Product = require("../../models/Product");
 
 const getFilteredProducts = async (req, res) => {
   try {
-    const { category = [], product = [], sortBy = "price-lowtohigh", page = 1, limit = 10 } = req.query;
+    const {
+      category = [],
+      product = [],
+      sortBy = "price-lowtohigh",
+      page = 1,
+      limit = 10,
+    } = req.query;
 
     let filters = {};
     if (category.length) filters.category = { $in: category.split(",") };
@@ -10,15 +16,28 @@ const getFilteredProducts = async (req, res) => {
 
     let sort = {};
     switch (sortBy) {
-      case "price-lowtohigh": sort.price = 1; break;
-      case "price-hightolow": sort.price = -1; break;
-      case "title-atoz": sort.title = 1; break;
-      case "title-ztoa": sort.title = -1; break;
-      default: sort.price = 1; break;
+      case "price-lowtohigh":
+        sort.price = 1;
+        break;
+      case "price-hightolow":
+        sort.price = -1;
+        break;
+      case "title-atoz":
+        sort.title = 1;
+        break;
+      case "title-ztoa":
+        sort.title = -1;
+        break;
+      default:
+        sort.price = 1;
+        break;
     }
 
     const skip = (page - 1) * limit;
-    const products = await Product.find(filters).sort(sort).skip(skip).limit(Number(limit));
+    const products = await Product.find(filters)
+      .sort(sort)
+      .skip(skip)
+      .limit(Number(limit));
     const total = await Product.countDocuments(filters);
 
     res.status(200).json({
@@ -39,7 +58,7 @@ const getFilteredProducts = async (req, res) => {
 const getProductDetails = async (req, res) => {
   try {
     const { id } = req.params;
-    const product = await Product.findById(id);
+    const product = await Product.findById(id).populate("colors", "name value");
 
     if (!product)
       return res.status(404).json({
